@@ -1,47 +1,59 @@
 # Langchain RAG Tutorial
 
-## Install dependencies
+Проект для создания и использования векторной базы данных с помощью Langchain и OpenAI.
 
-1. Do the following before installing the dependencies found in `requirements.txt` file because of current challenges installing `onnxruntime` through `pip install onnxruntime`. 
+## Установка
 
-    - For MacOS users, a workaround is to first install `onnxruntime` dependency for `chromadb` using:
+1. Клонируйте репозиторий:
+```bash
+git clone <repository_url>
+cd langchain-rag-tutorial
+```
 
-    ```python
-     conda install onnxruntime -c conda-forge
-    ```
-    See this [thread](https://github.com/microsoft/onnxruntime/issues/11037) for additonal help if needed. 
+2. Создайте и активируйте виртуальное окружение:
+```bash
+python -m venv .venv
+source .venv/bin/activate  # для Linux/Mac
+.venv\Scripts\activate     # для Windows
+```
 
-     - For Windows users, follow the guide [here](https://github.com/bycloudai/InstallVSBuildToolsWindows?tab=readme-ov-file) to install the Microsoft C++ Build Tools. Be sure to follow through to the last step to set the enviroment variable path.
-
-
-2. Now run this command to install dependenies in the `requirements.txt` file. 
-
-```python
+3. Установите зависимости:
+```bash
 pip install -r requirements.txt
 ```
 
-3. Install markdown depenendies with: 
+4. Настройка переменных окружения:
+- Скопируйте файл `.env.example` в новый файл `.env`
+- Заполните `.env` вашими реальными значениями:
+  ```
+  OPENAI_API_KEY=your_actual_api_key
+  ```
 
-```python
-pip install "unstructured[md]"
-```
+## Использование
 
-## Create database
-
-Create the Chroma DB.
-
-```python
+1. Создание базы данных:
+```bash
 python create_database.py
 ```
 
-## Query the database
-
-Query the Chroma DB.
-
-```python
-python query_data.py "How does Alice meet the Mad Hatter?"
+2. Запрос к базе данных:
+```bash
+python query_data.py "ваш вопрос здесь"
 ```
 
-> You'll also need to set up an OpenAI account (and set the OpenAI key in your environment variable) for this to work.
+## Структура проекта
 
-Here is a step-by-step tutorial video: [RAG+Langchain Python Project: Easy AI/Chat For Your Docs](https://www.youtube.com/watch?v=tcqEUSNCn8I&ab_channel=pixegami).
+- `create_database.py` - скрипт для создания векторной базы данных
+- `query_data.py` - скрипт для выполнения запросов к базе данных
+- `data/` - директория с исходными текстами
+- `chroma/` - директория с векторной базой данных (создается автоматически)
+
+## Безопасность
+
+- Никогда не коммитьте файл `.env` в репозиторий
+- Используйте `.env.example` как шаблон для создания `.env`
+- Для разных окружений (development, production) используйте разные `.env` файлы
+
+## Install dependencies
+
+1. Do the following before installing the dependencies found in `requirements.txt` file because of current challenges installing `
