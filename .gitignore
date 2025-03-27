@@ -36,5 +36,4 @@ ENV/
 # Project specific
 chroma/
 test_chroma/
-data/
 *.log
