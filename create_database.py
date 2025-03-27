@@ -1,49 +1,63 @@
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.schema import Document
-from langchain_openai import OpenAIEmbeddings
-from langchain_chroma import Chroma
-from dotenv import load_dotenv
 import os
-import nltk
+import shutil
+from dotenv import load_dotenv
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.vectorstores import Chroma
+from document_loaders import load_documents
+from get_embedding_function import get_embedding_function
 
-# Download required NLTK data
-nltk.download('punkt')
-nltk.download('averaged_perceptron_tagger')
-
-# Load environment variables
-load_dotenv()
-
-CHROMA_PATH = "chroma"
-DATA_PATH = "data/books/alice_in_wonderland.md"
+def check_env_vars():
+    """Проверяет наличие необходимых переменных окружения"""
+    required_vars = ["OPENAI_API_KEY"]
+    missing_vars = [var for var in required_vars if not os.getenv(var)]
+    if missing_vars:
+        print("Отсутствуют следующие переменные окружения:")
+        for var in missing_vars:
+            print(f"- {var}")
+        print("\nПожалуйста, добавьте их в файл .env")
+        exit(1)
 
 def main():
-    documents = load_documents()
-    chunks = split_documents(documents)
+    # Загружаем переменные окружения
+    load_dotenv()
+    check_env_vars()
     
-    embeddings = OpenAIEmbeddings(openai_api_key=os.environ["OPENAI_API_KEY"])
+    # Пути к директориям
+    data_path = "data"
+    db_path = "chroma"
     
+    # Очищаем старую базу данных если она существует
+    if os.path.exists(db_path):
+        shutil.rmtree(db_path)
+        print(f"Удалена старая база данных: {db_path}")
+    
+    # Загружаем документы
+    print("Загрузка документов...")
+    documents = load_documents(data_path)
+    
+    if not documents:
+        print("Нет документов для обработки")
+        return
+    
+    # Разбиваем документы на чанки
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=1000,
+        chunk_overlap=200,
+        length_function=len
+    )
+    splits = text_splitter.split_documents(documents)
+    print(f"Разбито на {len(splits)} чанков")
+    
+    # Создаем эмбеддинги и сохраняем в базу
+    print("Создание эмбеддингов и сохранение в базу...")
+    embedding_function = get_embedding_function()
     db = Chroma.from_documents(
-        chunks,
-        embeddings,
-        persist_directory=CHROMA_PATH
+        documents=splits,
+        embedding=embedding_function,
+        persist_directory=db_path
     )
     db.persist()
-
-def load_documents():
-    with open(DATA_PATH, 'r', encoding='utf-8') as f:
-        text = f.read()
-    return [Document(page_content=text)]
-
-def split_documents(documents):
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=300,
-        chunk_overlap=100,
-        length_function=len,
-        add_start_index=True,
-    )
-    chunks = text_splitter.split_documents(documents)
-    print(f"Split {len(documents)} documents into {len(chunks)} chunks.")
-    return chunks
+    print(f"База данных успешно создана и сохранена в {db_path}")
 
 if __name__ == "__main__":
     main()
